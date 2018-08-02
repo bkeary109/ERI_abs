@@ -11,9 +11,14 @@ wave = "427" ###Wavelength
 date = "180724" ### YYMMDD
 filenum = "002"
 
+
+### Error catching ###
+if len(sys.argv) != 3:
+    sys.exit("Failure. Run with start time and end time as arguments. Format: HH:MM")
+
 ##### Time interval to plot spectrum #####
-plottime1 = "16:58"   ## format: "HH:MM"
-plottime2 = "17:04"   ## format: "HH:MM"
+plottime1 = sys.argv[1]   ## format: "HH:MM"
+plottime2 = sys.argv[2]   ## format: "HH:MM"
 
 filestr = wave+"_"+date+"."+filenum
 

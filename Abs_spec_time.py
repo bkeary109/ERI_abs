@@ -10,8 +10,12 @@ date = "180721" ### YYMMDD
 filenum = "001"
 
 filestr = wave+"_"+date+"."+filenum
+
+## Error catching ##
+if len(sys.argv) != 2:
+    sys.exit("Failure. Run with time as an argument, in format HH:MM")
 ### Time to plot absorption spectrum ####
-plottime = "13:07"  ## format: "HH:MM"
+plottime = sys.argv[1]  ## format: "HH:MM"
 
 ### read in files
 backfile = "ib"+filestr
@@ -108,3 +112,5 @@ if save == "Y" or save == "y":
 
     np.savetxt(outfile, output, delimiter=',')
     print "\nSpectrum at %s saved" %plottime
+else:
+    print "\nSpectrum not saved"
