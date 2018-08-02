@@ -11,11 +11,8 @@ filenum = "001"
 
 filestr = wave+"_"+date+"."+filenum
 
-## Error catching ##
-if len(sys.argv) != 2:
-    sys.exit("Failure. Run with time as an argument, in format HH:MM")
-### Time to plot absorption spectrum ####
-plottime = sys.argv[1]  ## format: "HH:MM"
+## pixels (1 indexed)
+abs_pix = 109
 
 ### read in files
 backfile = "ib"+filestr
@@ -58,7 +55,8 @@ ii_cols = np.shape(raw_ii)[1]
 avg_backg = np.zeros((bg_cols))
 avg_i0 = np.zeros((i0_cols))
 ii_clean = np.zeros((ii_rows,ii_cols))
-abs_vals = np.zeros((ii_rows,ii_cols))
+
+pix_abs = np.zeros((ii_rows))
 
 ### Average background and I0 and clean I0 and Ii
 for n in xrange(1, bg_cols):
@@ -76,41 +74,35 @@ i0_clean = avg_i0 - avg_backg
 for a in xrange(0, ii_rows):
     ii_clean[a] = raw_ii[a] - avg_backg
 
-
-### Calculate absorption
-for m in xrange(0,ii_rows):
-    for n in xrange(0, ii_cols):
-        abs_vals[m,n] = (i0_clean[n]/ii_clean[m,n])-1
-
-### Find spectrum at given time
+### Calculate absorption at specified pixel
 for i in xrange(0, ii_rows):
-    if time_arr[i].strftime("%H:%M") == plottime:
-        plotpoint = i
-        print time_arr[i]
-        break
+    pix_abs[i] = ((i0_clean[abs_pix-1]/ii_clean[i, abs_pix-1]) - 1)
+
 
 print "Save spectrum (Y/N)?"
-
 sys.stdout.flush()
 
 ### Plot
-plt.title("Time = %s" %plottime)
-plt.plot(abs_vals[plotpoint])
+fig, ax = plt.subplots(1)
+fig.autofmt_xdate()
+plt.plot(time_arr, pix_abs)
+t_form = matplotlib.dates.DateFormatter('%H:%M')
+ax.xaxis.set_major_formatter(t_form)
 plt.show()
 
-#print "continue"
 save = raw_input()
+outtime = []
+for elem in time_arr:
+    outtime.append(elem.strftime('%H:%M:%S'))
+
+out_time = np.asarray(outtime)
 
 ### Write to file
 if save == "Y" or save == "y":
-    pixels = np.zeros((1024))
-    for p in xrange(1,1025):
-        pixels[p-1] = p
-    output = np.column_stack((pixels, abs_vals[plotpoint]))
-    outtime = time_arr[plotpoint].strftime("%H-%M")
-    outfile = wave+"_"+date+"_t"+outtime+".txt"
-
-    np.savetxt(outfile, output, delimiter=',')
-    print "\nSpectrum at %s saved" %plottime
+    pixstr = str(abs_pix)
+    output = np.column_stack((out_time, pix_abs))
+    outstr = wave+"_"+date+"_pix"+pixstr+"_abs.txt"
+    np.savetxt(outstr, output, delimiter = ',', fmt = "%s, %s")
+    print "\nAbsorption at pixel %d saved" %abs_pix
 else:
-    print "\nSpectrum not saved"
+    print "\nData not saved"
